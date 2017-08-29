@@ -67,8 +67,8 @@ def createArtifacts() {
     archiveArtifacts artifacts: "*", fingerprint: true
 }
 
-def createArchive(String name, String commit, String build_id) {
-    sh "tar czf /tmp/${name}-${commit}-${build_id}.tar.gz -C . ."
+def createArchive(String name, String commit, String build_id, String options='') {
+    sh "tar czf /tmp/${name}-${commit}-${build_id}.tar.gz -C . . $options"
 }
 
 def clean(String[] folders = []) {
