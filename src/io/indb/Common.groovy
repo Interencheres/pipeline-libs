@@ -23,10 +23,10 @@ def getVars(Map args) {
 
 def getGroups(Map vars) {
     if ("${env.BRANCH_NAME}" == 'master') {
-        return "${vars.app.group}.master"
+        return "${env.GROUP}.master"
     }
     else {
-        return "${vars.app.group}.branches"
+        return "${env.GROUP}.branches"
     }
 }
 
