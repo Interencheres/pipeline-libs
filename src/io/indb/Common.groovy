@@ -35,6 +35,15 @@ def getNexusGroup() {
     }
 }
 
+def getNexusRepo() {
+    if ("${env.BUILD_TYPE}" == 'release') {
+        return REPO_RELEASES
+    }
+    else {
+        return REPO_SNAPSHOTS
+    }
+}
+
 def getNexusBranchName(String branch) {
     return "${branch}".replaceAll("[^A-Za-z0-9]", "-")
 }
