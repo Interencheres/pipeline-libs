@@ -22,11 +22,16 @@ def getVars(Map args) {
 }
 
 def getGroups(Map vars) {
-    if ("${env.BRANCH_NAME}" == 'master') {
-        return "${env.GROUP}.master"
+    if ("${env.BUILD_TYPE}" == 'release') {
+        return "${env.GROUP}.release"
     }
     else {
-        return "${env.GROUP}.branches"
+        if ("${env.BRANCH_NAME}" == 'master') {
+            return "${env.GROUP}.master"
+        }
+        else {
+            return "${env.GROUP}.branches"
+        }
     }
 }
 
