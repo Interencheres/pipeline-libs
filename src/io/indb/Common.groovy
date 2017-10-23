@@ -80,7 +80,7 @@ def sendToNexus(Map vars) {
     nexusVersion: 'nexus2',
     protocol: 'http',
     repository: vars.repo,
-    version: "${vars.branch_display}-SNAPSHOT"
+    version: vars.version
 }
 
 def moveArchiveInProjet(Map vars) {
