@@ -21,8 +21,8 @@ def getVars(Map args) {
     return config
 }
 
-def getGroups(String branch, Map vars) {
-    if ("${branch}" == 'master') {
+def getGroups(Map vars) {
+    if ("${env.BRANCH_NAME}" == 'master') {
         return "${vars.app.group}.master"
     }
     else {
