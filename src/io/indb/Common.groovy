@@ -1,6 +1,16 @@
 #!/usr/bin/groovy
 package io.indb;
 
+def buildVersionName() {
+    if ("${env.BUILD_TYPE}" == 'release') {
+        return "v${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-RELEASE"
+    }
+    else {
+        def branch_display = getNexusBranchName(env.BRANCH_NAME)
+        return "${branch_display}-SNAPSHOT"
+    }
+}
+
 def getShell() {
     new Shell()
 }
