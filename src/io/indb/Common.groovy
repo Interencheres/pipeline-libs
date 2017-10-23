@@ -21,7 +21,7 @@ def getVars(Map args) {
     return config
 }
 
-def getGroups(Map vars) {
+def getNexusGroup() {
     if ("${env.BUILD_TYPE}" == 'release') {
         return "${env.GROUP}.release"
     }
