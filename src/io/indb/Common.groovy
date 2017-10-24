@@ -1,6 +1,16 @@
 #!/usr/bin/groovy
 package io.indb;
 
+def buildVersionName() {
+    if ("${env.BUILD_TYPE}" == 'release') {
+        return "v${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-RELEASE"
+    }
+    else {
+        def branch_display = getNexusBranchName(env.BRANCH_NAME)
+        return "${branch_display}-SNAPSHOT"
+    }
+}
+
 def getShell() {
     new Shell()
 }
@@ -21,12 +31,26 @@ def getVars(Map args) {
     return config
 }
 
-def getGroups(String branch, Map vars) {
-    if ("${branch}" == 'master') {
-        return "${vars.app.group}.master"
+def getNexusGroup() {
+    if ("${env.BUILD_TYPE}" == 'release') {
+        return "${env.GROUP}.release"
     }
     else {
-        return "${vars.app.group}.branches"
+        if ("${env.BRANCH_NAME}" == 'master') {
+            return "${env.GROUP}.master"
+        }
+        else {
+            return "${env.GROUP}.branches"
+        }
+    }
+}
+
+def getNexusRepo() {
+    if ("${env.BUILD_TYPE}" == 'release') {
+        return REPO_RELEASES
+    }
+    else {
+        return REPO_SNAPSHOTS
     }
 }
 
@@ -56,7 +80,7 @@ def sendToNexus(Map vars) {
     nexusVersion: 'nexus2',
     protocol: 'http',
     repository: vars.repo,
-    version: "${vars.branch_display}-SNAPSHOT"
+    version: vars.version
 }
 
 def moveArchiveInProjet(Map vars) {
