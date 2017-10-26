@@ -33,7 +33,7 @@ def getVars(Map args) {
 
 def getNexusGroup() {
     if ("${env.BUILD_TYPE}" == 'release') {
-        return "${env.GROUP}.release"
+        return "${env.GROUP}.releases"
     }
     else {
         if ("${env.BRANCH_NAME}" == 'master') {
