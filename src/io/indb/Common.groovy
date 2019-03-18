@@ -1,9 +1,9 @@
 #!/usr/bin/groovy
 package io.indb;
 
-def buildVersionName() {
-    if ("${env.BUILD_TYPE}" == 'release') {
-        return "v${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-RELEASE"
+def buildVersionName(Map vars) {
+    if ( "${vars.build_type}" == 'release' ) {
+        return "v${vars.version.major}.${vars.version.minor}.${vars.version.patch}-RELEASE"
     }
     else {
         def branch_display = getNexusBranchName(env.BRANCH_NAME)
@@ -31,12 +31,12 @@ def getVars(Map args) {
     return config
 }
 
-def getNexusGroup() {
-    if ("${env.BUILD_TYPE}" == 'release') {
+def getNexusGroup(String build_type) {
+    if ( "${build_type}" == 'release' ) {
         return "${env.GROUP}.releases"
     }
     else {
-        if ("${env.BRANCH_NAME}" == 'master') {
+        if (env.BRANCH_NAME == 'master') {
             return "${env.GROUP}.master"
         }
         else {
@@ -45,12 +45,12 @@ def getNexusGroup() {
     }
 }
 
-def getNexusRepo() {
-    if ("${env.BUILD_TYPE}" == 'release') {
-        return REPO_RELEASES
+def getNexusRepo(String build_type) {
+    if ( "${build_type}" == 'release' ) {
+        return env.REPO_RELEASES
     }
     else {
-        return REPO_SNAPSHOTS
+        return env.REPO_SNAPSHOTS
     }
 }
 
@@ -68,19 +68,25 @@ def getHashCommit() {
 def sendToNexus(Map vars) {
     nexusArtifactUploader artifacts: [
         [
-        artifactId: vars.name,
-        classifier: 'sources',
-        file: "${vars.name}-${vars.commit}-${vars.build_id}.tar.gz",
-        type: 'tar.gz'
+            artifactId: vars.name,
+            classifier: 'sources',
+            file: "${vars.name}-${vars.commit}-${vars.build_id}.tar.gz",
+            type: 'tar.gz'
         ]
     ],
-    credentialsId: 'nexus',
-    groupId: vars.group,
-    nexusUrl: vars.nexus,
-    nexusVersion: 'nexus2',
-    protocol: 'http',
-    repository: vars.repo,
-    version: vars.version
+    credentialsId: env.NEXUS_CRED_ID,
+    groupId: getNexusGroup(vars.build_type),
+    nexusUrl: env.NEXUS_URL,
+    nexusVersion: env.NEXUS_VERSION,
+    protocol: env.NEXUS_PROTO,
+    repository: getNexusRepo(vars.build_type),
+    version: buildVersionName(vars)
+}
+
+def getAppName() {
+    def app_name = env.JOB_NAME.split('/')[1]
+    println "app_name: ${app_name}"
+    return app_name
 }
 
 def moveArchiveInProjet(Map vars) {
@@ -91,8 +97,32 @@ def createArtifacts() {
     archiveArtifacts artifacts: "*", fingerprint: true
 }
 
-def createArchive(String name, String commit, String build_id, String options='') {
-    sh "tar czf /tmp/${name}-${commit}-${build_id}.tar.gz -C . --exclude=./.git --exclude=./.gitignore $options ."
+def createArchive(String name, String commit, String build_id, String options) {
+    def default_options = './.git ./.gitignore'
+    options = options.concat(default_options).split(' ').join(' --exclude=')
+    sh "tar czf /tmp/${name}-${commit}-${build_id}.tar.gz -C . --exclude=$options ."
+}
+
+def packageAndUpload(Map vars, String options) {
+    def app_name = getAppName()
+    createArtifacts()
+    createArchive(app_name, vars.app_commit, env.BUILD_ID, options)
+    moveArchiveInProjet([
+        name: app_name,
+        commit: vars.app_commit,
+        build_id: env.BUILD_ID
+    ])
+    sendToNexus([
+        name: app_name,
+        commit: vars.app_commit,
+        build_id: env.BUILD_ID,
+        build_type: vars.build_type,
+        version: [
+            major: vars.major,
+            minor: vars.minor,
+            patch: vars.patch
+        ]
+    ])
 }
 
 def clean(String[] folders = []) {
