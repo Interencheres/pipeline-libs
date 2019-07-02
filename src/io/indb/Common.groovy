@@ -61,8 +61,7 @@ def getNexusBranchName(String branch) {
 def getHashCommit() {
     // Retrieve current commit hash
     // @see https://issues.jenkins-ci.org/browse/JENKINS-26100
-    sh 'git rev-parse --short HEAD > commit'
-    return readFile('commit').trim()
+    return getShell().pipe("git rev-parse HEAD")
 }
 
 def sendToNexus(Map vars) {
@@ -92,6 +91,7 @@ def createArtifacts() {
 }
 
 def createArchive(String name, String commit, String build_id, String options='') {
+    writeFile file: 'GIT_COMMIT', text: getHashCommit()
     sh "tar czf /tmp/${name}-${commit}-${build_id}.tar.gz -C . --exclude=./.git --exclude=./.gitignore $options ."
 }
 
