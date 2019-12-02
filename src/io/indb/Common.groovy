@@ -97,7 +97,7 @@ def createArtifacts() {
 }
 
 def createArchive(String name, String commit, String build_id, String options) {
-    def default_options = './.git ./.gitignore'
+    def default_options = ' ./.git ./.gitignore'
     options = options.concat(default_options).split(' ').join(' --exclude=')
     sh "tar czf /tmp/${name}-${commit}-${build_id}.tar.gz -C . --exclude=$options ."
 }
